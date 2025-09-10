@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/dist/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    }
+    .qr-shadow {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .input-focus:focus {
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.45);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="gradient-bg text-white py-8">
+    <div class="container mx-auto px-4">
+      <div class="max-w-3xl mx-auto text-center" data-aos="fade-up">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">QR Code Generator</h1>
+        <p class="text-xl text-indigo-100">Create beautiful, customizable QR codes in seconds</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow container mx-auto px-4 py-12">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+      <div class="md:flex">
+        <!-- Form Section -->
+        <div class="w-full md:w-1/2 p-8">
+          <form id="qr-form">
+            <div class="mb-6">
+              <label for="datatype" class="block text-sm font-medium text-gray-700 mb-2">Data Type</label>
+              <select id="datatype" name="datatype" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                <option value="url">URL</option>
+                <option value="phone">Phone Number</option>
+                <option value="wifi">WiFi Credentials</option>
+                <option value="app">App Deep Link</option>
+                <option value="text">Plain Text</option>
+              </select>
+            </div>
+
+            <div class="mb-6" id="main-input-group">
+              <label for="data-input" id="data-input-label" class="block text-sm font-medium text-gray-700 mb-2">Enter Data</label>
+              <input type="text" id="data-input" name="data-input" placeholder="https://example.com" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition input-focus">
+            </div>
+
+            <div class="mb-6 hidden" id="wifi-fields">
+              <div class="mb-4">
+                <label for="ssid" class="block text-sm font-medium text-gray-700 mb-2">SSID</label>
+                <input type="text" id="ssid" name="ssid" placeholder="WiFi Name" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition input-focus">
+              </div>
+              <div class="mb-4">
+                <label for="wifi-password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                <input type="text" id="wifi-password" name="wifi-password" placeholder="WiFi Password" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition input-focus">
+              </div>
+              <div>
+                <label for="wifi-type" class="block text-sm font-medium text-gray-700 mb-2">Encryption Type</label>
+                <select id="wifi-type" name="wifi-type" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                  <option value="WPA">WPA/WPA2</option>
+                  <option value="WEP">WEP</option>
+                  <option value="">None</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div>
+                <label for="color" class="block text-sm font-medium text-gray-700 mb-2">QR Color</label>
+                <div class="flex items-center">
+                  <input type="color" id="color" name="color" value="#9c27b0" class="w-12 h-12 cursor-pointer">
+                  <span class="ml-3 text-gray-600" id="color-value">#9c27b0</span>
+                </div>
+              </div>
+              <div>
+                <label for="shape" class="block text-sm font-medium text-gray-700 mb-2">QR Shape</label>
+                <select id="shape" name="shape" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                  <option value="square">Square</option>
+                  <option value="rounded">Rounded</option>
+                  <option value="dot">Dots</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <label for="logo" class="block text-sm font-medium text-gray-700 mb-2">Logo (Optional)</label>
+              <div class="flex items-center">
+                <label class="flex flex-col items-center px-4 py-3 bg-white rounded-lg border border-gray-300 cursor-pointer hover:bg-gray-50">
+                  <i data-feather="upload" class="w-5 h-5 text-purple-600"></i>
+                  <span class="mt-1 text-sm text-gray-600">Choose file</span>
+                  <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.svg" class="hidden">
+                </label>
+                <span id="file-name" class="ml-3 text-sm text-gray-500">No file selected</span>
+              </div>
+            </div>
+
+            <button id="generate-btn" type="button" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+              <i data-feather="zap" class="w-5 h-5 mr-2"></i>
+              Generate QR Code
+            </button>
+          </form>
+        </div>
+
+        <!-- QR Preview Section -->
+        <div class="w-full md:w-1/2 bg-gray-50 p-8 flex flex-col items-center justify-center">
+          <div id="qr-output" class="text-center">
+            <div id="qr-preview-container" class="mb-6 p-4 bg-white rounded-lg qr-shadow">
+              <canvas id="qr-canvas" class="mx-auto" width="200" height="200"></canvas>
+              <img id="qr-svg" style="display:none;" class="mx-auto" width="200" height="200">
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button id="download-png" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center disabled:opacity-50" disabled>
+                <i data-feather="download" class="w-4 h-4 mr-2"></i>
+                PNG
+              </button>
+              <button id="download-svg" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center disabled:opacity-50" disabled>
+                <i data-feather="download" class="w-4 h-4 mr-2"></i>
+                SVG
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-gray-900 text-white py-8">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-8">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3266152370277591" crossorigin="anonymous"></script>
+        <!-- Bottom Ad -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3266152370277591"
+             data-ad-slot="1234567890"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+      <p class="text-gray-400 text-center">Made with <i data-feather="heart" class="w-4 h-4 inline text-red-400"></i> by QR Generator</p>
+    </div>
+  </footer>
+
+  <script>
+    AOS.init();
+    feather.replace();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Color picker value display
+      const colorPicker = document.getElementById('color');
+      const colorValue = document.getElementById('color-value');
+      
+      colorPicker.addEventListener('input', function() {
+        colorValue.textContent = this.value;
+      });
+
+      // File input display
+      const fileInput = document.getElementById('logo');
+      const fileName = document.getElementById('file-name');
+      
+      fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+          fileName.textContent = this.files[0].name;
+        } else {
+          fileName.textContent = 'No file selected';
+        }
+      });
+
+      // Toggle WiFi fields
+      const dataTypeSelect = document.getElementById('datatype');
+      const mainInputGroup = document.getElementById('main-input-group');
+      const wifiFields = document.getElementById('wifi-fields');
+      const dataInputLabel = document.getElementById('data-input-label');
+      
+      dataTypeSelect.addEventListener('change', function() {
+        if (this.value === 'wifi') {
+          wifiFields.classList.remove('hidden');
+          mainInputGroup.classList.add('hidden');
+        } else {
+          wifiFields.classList.add('hidden');
+          mainInputGroup.classList.remove('hidden');
+          
+          // Update label based on selected type
+          switch(this.value) {
+            case 'url':
+              dataInputLabel.textContent = 'Enter URL';
+              document.getElementById('data-input').placeholder = 'https://example.com';
+              break;
+            case 'phone':
+              dataInputLabel.textContent = 'Enter Phone Number';
+              document.getElementById('data-input').placeholder = '+1234567890';
+              break;
+            case 'app':
+              dataInputLabel.textContent = 'Enter App Deep Link';
+              document.getElementById('data-input').placeholder = 'myapp://path/to/content';
+              break;
+            case 'text':
+              dataInputLabel.textContent = 'Enter Text';
+              document.getElementById('data-input').placeholder = 'Any text you want';
+              break;
+          }
+        }
+      });
+
+      // Generate QR Code
+      const generateBtn = document.getElementById('generate-btn');
+      const qrCanvas = document.getElementById('qr-canvas');
+      const qrSvg = document.getElementById('qr-svg');
+      const downloadPng = document.getElementById('download-png');
+      const downloadSvg = document.getElementById('download-svg');
+      
+      generateBtn.addEventListener('click', function() {
+        let qrData = '';
+        const dataType = dataTypeSelect.value;
+        
+        if (dataType === 'wifi') {
+          const ssid = document.getElementById('ssid').value;
+          const password = document.getElementById('wifi-password').value;
+          const encryption = document.getElementById('wifi-type').value;
+          
+          if (!ssid) {
+            alert('Please enter WiFi SSID');
+            return;
+          }
+          
+          qrData = `WIFI:T:${encryption};S:${ssid};P:${password};;`;
+        } else {
+          const dataInput = document.getElementById('data-input').value;
+          
+          if (!dataInput) {
+            alert('Please enter data for the QR code');
+            return;
+          }
+          
+          switch(dataType) {
+            case 'url':
+              qrData = dataInput.startsWith('http') ? dataInput : `https://${dataInput}`;
+              break;
+            case 'phone':
+              qrData = `tel:${dataInput.replace(/[^0-9+]/g, '')}`;
+              break;
+            case 'app':
+              qrData = dataInput;
+              break;
+            case 'text':
+              qrData = dataInput;
+              break;
+          }
+        }
+        
+        // Generate QR code
+        const color = document.getElementById('color').value;
+        const shape = document.getElementById('shape').value;
+        
+        // For SVG
+        const qrcode = new QRCode({
+          content: qrData,
+          padding: 4,
+          width: 256,
+          height: 256,
+          color: color,
+          background: "#ffffff",
+          ecl: "M",
+          join: shape === 'rounded' ? true : false,
+          radius: shape === 'rounded' ? 0.5 : 0,
+          pretty: shape === 'dot' ? true : false
+        });
+        
+        qrSvg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(qrcode.svg())));
+        qrSvg.style.display = 'block';
+        qrCanvas.style.display = 'none';
+        
+        // Enable download buttons
+        downloadPng.disabled = false;
+        downloadSvg.disabled = false;
+      });
+      
+      // Download handlers
+      downloadPng.addEventListener('click', function() {
+        // Convert SVG to PNG for download
+        const svgData = qrSvg.src.replace('data:image/svg+xml;base64,', '');
+        const svgText = atob(svgData);
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        
+        const img = new Image();
+        img.onload = function() {
+          ctx.drawImage(img, 0, 0);
+          
+          // Add logo if selected
+          const logoFile = fileInput.files[0];
+          if (logoFile) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              const logoImg = new Image();
+              logoImg.onload = function() {
+                const logoSize = 40;
+                const centerX = (canvas.width - logoSize) / 2;
+                const centerY = (canvas.height - logoSize) / 2;
+                
+                // Draw white background for logo
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(centerX - 2, centerY - 2, logoSize + 4, logoSize + 4);
+                
+                ctx.drawImage(logoImg, centerX, centerY, logoSize, logoSize);
+                
+                // Trigger download
+                const link = document.createElement('a');
+                link.download = 'qr-code.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+              };
+              logoImg.src = e.target.result;
+            };
+            reader.readAsDataURL(logoFile);
+          } else {
+            // Trigger download without logo
+            const link = document.createElement('a');
+            link.download = 'qr-code.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          }
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText)));
+      });
+      
+      downloadSvg.addEventListener('click', function() {
+        const svgData = qrSvg.src.replace('data:image/svg+xml;base64,', '');
+        const svgText = atob(svgData);
+        
+        // Add logo if selected
+        const logoFile = fileInput.files[0];
+        if (logoFile) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+            const svgElement = svgDoc.querySelector('svg');
+            
+            // Create logo image element with white background
+            const logoBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            logoBg.setAttribute("x", "108");
+            logoBg.setAttribute("y", "108");
+            logoBg.setAttribute("width", "40");
+            logoBg.setAttribute("height", "40");
+            logoBg.setAttribute("fill", "#ffffff");
+            
+            const logoImg = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            logoImg.setAttribute("href", e.target.result);
+            logoImg.setAttribute("x", "108");
+            logoImg.setAttribute("y", "108");
+            logoImg.setAttribute("width", "40");
+            logoImg.setAttribute("height", "40");
+            
+            svgElement.appendChild(logoBg);
+            
+            svgElement.appendChild(logoImg);
+            
+            // Trigger download
+            const serializer = new XMLSerializer();
+            const modifiedSvg = serializer.serializeToString(svgDoc);
+            
+            const link = document.createElement('a');
+            link.download = 'qr-code.svg';
+            link.href = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(modifiedSvg)));
+            link.click();
+          };
+          reader.readAsDataURL(logoFile);
+        } else {
+          // Trigger download without logo
+          const link = document.createElement('a');
+          link.download = 'qr-code.svg';
+          link.href = qrSvg.src;
+          link.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
